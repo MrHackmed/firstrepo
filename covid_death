@@ -1,0 +1,115 @@
+SELECT * 
+FROM CovidProject.coviddeaths
+ORDER BY 3,4;
+
+
+-- Select the data for exploration
+
+SELECT date, location, population, new_cases, total_cases, new_deaths, total_deaths
+FROM coviddeaths
+ORDER BY 2;
+
+-- Looking at total cases vs total deaths
+-- Shows the likelihood of dying from contracting covid in different countries
+
+SELECT date, location, population, total_cases, total_deaths, (total_deaths / total_cases) * 100 AS death_rate
+FROM coviddeaths
+ORDER BY 2;
+
+-- UNITED KINGDOM
+
+-- Shows the death rates of COVID over time
+
+SELECT date, location, population, total_cases, total_deaths, (total_deaths / total_cases) * 100 AS death_rate
+FROM coviddeaths
+WHERE location LIKE '%kingdom%'
+ORDER BY 2;
+
+-- Looking at total cases vs population
+
+SELECT date, location, population, total_cases, (total_cases / population) * 100 AS percentage_infected
+FROM coviddeaths
+WHERE location LIKE '%kingdom%'
+ORDER BY 2;
+
+-- Looking at the infection rate through time
+
+SELECT date, location, population, new_cases, (new_cases / population) * 100 AS infection_rate
+FROM coviddeaths
+WHERE location LIKE '%kingdom%'
+ORDER BY 2;
+
+-- Date where infection_rate was highest in UK
+
+SELECT date, location, population, new_cases, (new_cases / population) * 100 AS infection_rate
+FROM coviddeaths
+WHERE location LIKE '%kingdom%'
+ORDER BY 5 DESC
+LIMIT 1;
+
+
+-- 
+-- Looking at countries with the highest infection count per its population
+
+SELECT location, population, MAX(total_cases) AS highest_infection_count, (MAX(total_cases / population)) * 100 AS percent_population_infected
+FROM coviddeaths
+GROUP BY location, population
+ORDER BY percent_population_infected DESC;
+
+-- Looking at highest infection rate for all countries
+
+SELECT DISTINCT(location), (MAX(new_cases / population)) * 100 AS highest_infection_rate, date
+FROM coviddeaths
+GROUP BY location
+ORDER BY highest_infection_rate DESC;
+
+-- Looking at total death counts for individual countries, sorting from the highest
+
+SELECT location, MAX(CAST(total_deaths AS SIGNED)) AS total_death_count
+FROM coviddeaths
+WHERE continent != ''
+GROUP BY location
+ORDER BY total_death_count DESC;
+
+
+-- EXPLORE DATA BY CONTINENTS
+
+-- Looking at total case count and total death count for each continent
+
+SELECT location, 
+		MAX(total_cases) AS total_case_count,
+        MAX(CAST(total_deaths AS SIGNED)) AS total_death_count
+FROM coviddeaths
+WHERE continent = '' AND
+    location NOT REGEXP 'income'
+GROUP BY location
+ORDER BY total_death_count DESC;
+
+-- Looking at the numbers globally
+
+-- Total cases, total deaths and daily death rate globally
+
+SELECT date,
+	   SUM(new_cases) AS global_case_count,
+       SUM(CAST(new_deaths AS SIGNED)) AS global_death_count,
+       (SUM(CAST(new_deaths AS SIGNED)) / SUM(new_cases)) * 100 AS global_death_rate
+FROM coviddeaths
+WHERE continent = '' AND
+    location NOT REGEXP 'income'
+GROUP BY date;
+
+-- total cases and total number of deaths worldwide till Oct 2022
+
+SELECT DISTINCT(continent), MAX(total_cases) as totalcases, MAX(CAST(total_deaths AS SIGNED)) AS totaldeaths
+FROM coviddeaths
+where continent != ''
+GROUP BY continent;
+
+-- global case count, global death count and global death rate as at Oct 2022
+
+SELECT SUM(new_cases) AS global_case_count,
+       SUM(CAST(new_deaths AS SIGNED)) AS global_death_count,
+       (SUM(CAST(new_deaths AS SIGNED)) / SUM(new_cases)) * 100 AS global_death_rate
+FROM coviddeaths
+WHERE continent != '' AND
+    location NOT REGEXP 'income';
